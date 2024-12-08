@@ -39,10 +39,6 @@ def fetch_news(url):
     
     #return news_headlines[:3]  # Limit to three headlines
 
-# Function to fetch RSS feed
-def fetch_rss(url):
-    feed = feedparser.parse(url)
-    return [entry.title for entry in feed.entries][:3]  # Limit to three items
 
 # Streamlit Interface
 def main():
@@ -69,12 +65,7 @@ def main():
             for headline in news_headlines:
                 st.write("-", headline)
 
-            # Optionally, fetch news from an RSS feed
-            rss_url = 'http://csu.ru/news'
-            rss_headlines = fetch_rss(rss_url)
-            st.subheader("RSS News Headlines:")
-            for headline in rss_headlines:
-                st.write("-", headline)
+
         else:
             st.write("No recent news found.")
 
