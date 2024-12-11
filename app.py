@@ -34,13 +34,13 @@ def fetch_news(url):
     response = requests.get(url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, 'html.parser')
-    news_elements = soup.select('.csu_news-feed .csu_news-feed1')  
+    news_elements = soup.select('.inside newspage .news_content')  
     news_headlines = [element.get_text(strip=True) for element in news_elements]
     return news_headlines
 
 # Streamlit Interface
 def main():
-    st.set_page_config(page_title="CSU Info Service", layout="wide")
+    st.set_page_config(page_title="CSU Info Service", layout="centered")
     
     # Load a Lottie animation for the header
     lottie_header_url = "https://lottie.host/eac077c4-86e8-43b1-b41f-142af05db24d/SrwORZwZZV.json"  # Sample Lottie URL
@@ -87,13 +87,13 @@ def main():
                     st.write("No relevant links found.")
 
                 # Fetch and display news headlines
-                university_news_url = 'https://www.csu.ru'
+                university_news_url = 'https://iit.csu.ru'
                 news_headlines = fetch_news(university_news_url)
                 
                 st.subheader("Recent News Headlines:")
                 if news_headlines:
-                    for headline in news_headlines:
-                        st.write(f"- {headline}")
+                    for News in news_headlines:
+                        st.write(f"- {News}")
                 else:
                     st.write("No recent news found.")
 
