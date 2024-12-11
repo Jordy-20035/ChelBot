@@ -34,7 +34,7 @@ def fetch_news(url):
     response = requests.get(url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, 'html.parser')
-    news_elements = soup.select('.inside newspage .news_content')  
+    news_elements = soup.select('.item .news_content')  
     news_headlines = [element.get_text(strip=True) for element in news_elements]
     return news_headlines
 
@@ -87,7 +87,7 @@ def main():
                     st.write("No relevant links found.")
 
                 # Fetch and display news headlines
-                university_news_url = 'https://iit.csu.ru'
+                university_news_url = 'https://iit.csu.ru/news'
                 news_headlines = fetch_news(university_news_url)
                 
                 st.subheader("Recent News Headlines:")
