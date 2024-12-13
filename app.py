@@ -30,13 +30,44 @@ def search_google(query, api_key, cse_id):
     return res['items'][:3] if 'items' in res else []
 
 # Function to fetch news from the Chelyabinsk State University website
-def fetch_news(url):
+# def fetch_news(url):
+#     response = requests.get(url)
+#     response.encoding = 'utf-8'
+#     soup = BeautifulSoup(response.text, 'html.parser')
+#     news_elements = soup.select('.item .news_content')  
+#     news_headlines = [element.get_text(strip=True) for element in news_elements]
+#     return news_headlines
+
+
+def fetch_news_items(url):
     response = requests.get(url)
-    response.encoding = 'utf-8'
+    response.encoding = 'utf-8'  # Ensure proper encoding
     soup = BeautifulSoup(response.text, 'html.parser')
-    news_elements = soup.select('.item .news_content')  
-    news_headlines = [element.get_text(strip=True) for element in news_elements]
-    return news_headlines
+    
+    # Find the table rows within the specific parent with class 'ms-wpContentDivSpace'
+    rows = soup.select('.ms-wpContentDivSpace tr')  # Grab all rows from the parent table
+
+    items = []  # This will store extracted news items
+
+    for row in rows:
+        # Find the columns in the current row; we will treat them as table cells
+        columns = row.find_all('td')
+        
+        # Check to ensure that there's enough columns to extract the needed data
+        if len(columns) > 8:
+            news_item = {}
+            # Column with date
+            date_column = columns[1].get_text(strip=True) if len(columns) > 1 else None
+            title_element = columns[8].find('a')  # Assuming title is in the 9th column
+            
+            # Filter to only include rows with both date and title found
+            if date_column and title_element:
+                news_item['date'] = date_column
+                news_item['title'] = title_element.get_text(strip=True)
+                news_item['link'] = title_element['href']  # Extract the hyperlink
+                items.append(news_item)
+
+    return items
 
 # Streamlit Interface
 def main():
@@ -87,18 +118,18 @@ def main():
                     st.write("No relevant links found.")
 
                 # Fetch and display news headlines
-                university_news_url = 'https://iit.csu.ru/news'
-                news_headlines = fetch_news(university_news_url)
+                url = 'https://www.csu.ru/news'
+                news_items = fetch_news_items(url)
                 
                 st.subheader("Recent News Headlines:")
-                if news_headlines:
-                    for News in news_headlines:
-                        st.write(f"- {News}")
-                else:
-                    st.write("No recent news found.")
+                # Assuming you want to print results in a structured format
+                for item in news_items:
+                    st.write(f"Date: {item.get('date')}, Title: {item.get('title')}, Link: {item.get('link')}")
 
         else:
             st.warning("Please enter a query and ensure API keys are set.")
+
+        print(news_items)
 
 if __name__ == "__main__":
     main()
