@@ -5,6 +5,7 @@
 # import os
 # from dotenv import load_dotenv
 # from streamlit_lottie import st_lottie  # Import the st_lottie function
+# from transformers import pipeline
 
 # # Load .env variables
 # load_dotenv()
@@ -60,6 +61,12 @@
 
 #     return items
 
+# # Function to summarize text using Hugging Face's Transformers
+# def summarize_text(text):
+#     summarizer = pipeline("summarization")
+#     summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
+#     return summary[0]['summary_text']
+
 # # Streamlit Interface
 # def main():
 #     st.set_page_config(page_title="CSU Info Service", layout="centered")
@@ -114,11 +121,21 @@
                 
 #                 st.subheader("Recent News Headlines:")
 #                 # Show a maximum of 5 headlines with simple summaries
+#                 headlines = []
 #                 for item in news_items[:5]:
-#                     # Simple summarization by truncating titles (customize this as needed)
+#                     # Collecting headlines for summarization
+#                     headlines.append(item['title'])
 #                     summary = (item['title'][:50] + '...') if len(item['title']) > 50 else item['title']
 #                     st.write(f"**Date:** {item['date']}")
 #                     st.write(f"**Title:** {summary} [Read More]({item['link']})")
+
+#                 # Generate and display a summary of collected headlines
+#                 if headlines:
+#                     combined_headlines = ' '.join(headlines)
+#                     summary = summarize_text(combined_headlines)
+                    
+#                     st.subheader("Summary:")
+#                     st.write(summary)
 
 #         else:
 #             st.warning("Please enter a query and ensure API keys are set.")
@@ -192,9 +209,14 @@ def fetch_news_items(url):
 
     return items
 
+def chunk_text(text, chunk_size=512):
+    # Splitting the text into chunks
+    words = text.split()
+    return [' '.join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
+
 # Function to summarize text using Hugging Face's Transformers
 def summarize_text(text):
-    summarizer = pipeline("summarization")
+    summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
     summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
     return summary[0]['summary_text']
 
@@ -263,10 +285,12 @@ def main():
                 # Generate and display a summary of collected headlines
                 if headlines:
                     combined_headlines = ' '.join(headlines)
-                    summary = summarize_text(combined_headlines)
-                    
+                    chunks = chunk_text(combined_headlines)  # Chunk the text
+                    summaries = [summarize_text(chunk) for chunk in chunks]  # Summarize each chunk
+                    combined_summary = ' '.join(summaries)  # Combine the summaries
+
                     st.subheader("Summary:")
-                    st.write(summary)
+                    st.write(combined_summary)
 
         else:
             st.warning("Please enter a query and ensure API keys are set.")
