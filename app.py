@@ -30,15 +30,6 @@ def search_google(query, api_key, cse_id):
     return res['items'][:3] if 'items' in res else []
 
 # Function to fetch news from the Chelyabinsk State University website
-# def fetch_news(url):
-#     response = requests.get(url)
-#     response.encoding = 'utf-8'
-#     soup = BeautifulSoup(response.text, 'html.parser')
-#     news_elements = soup.select('.item .news_content')  
-#     news_headlines = [element.get_text(strip=True) for element in news_elements]
-#     return news_headlines
-
-
 def fetch_news_items(url):
     response = requests.get(url)
     response.encoding = 'utf-8'  # Ensure proper encoding
@@ -122,9 +113,12 @@ def main():
                 news_items = fetch_news_items(url)
                 
                 st.subheader("Recent News Headlines:")
-                # Assuming you want to print results in a structured format
-                for item in news_items:
-                    st.write(f"Date: {item.get('date')}, Title: {item.get('title')}, Link: {item.get('link')}")
+                # Show a maximum of 5 headlines with simple summaries
+                for item in news_items[:5]:
+                    # Simple summarization by truncating titles (customize this as needed)
+                    summary = (item['title'][:50] + '...') if len(item['title']) > 50 else item['title']
+                    st.write(f"**Date:** {item['date']}")
+                    st.write(f"**Title:** {summary} [Read More]({item['link']})")
 
         else:
             st.warning("Please enter a query and ensure API keys are set.")
