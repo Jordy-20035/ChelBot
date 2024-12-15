@@ -5,8 +5,7 @@ from googleapiclient.discovery import build
 import os
 from dotenv import load_dotenv
 from streamlit_lottie import st_lottie  # Import the st_lottie function
-from transformers import pipeline 
-import torch
+from transformers import pipeline
 
 # Load .env variables
 load_dotenv()
@@ -67,44 +66,11 @@ def chunk_text(text, chunk_size=512):
     words = text.split()
     return [' '.join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
 
-
 # Function to summarize text using Hugging Face's Transformers
-# def summarize_text(titles):
-#     # Join titles into a coherent structure
-#     combined_titles = '. '.join(titles)  # Separate sentences with periods for increased coherence
-#     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-
-
-#     # Here, we're setting max_length and min_length to encourage a more concise summary
-#     summary = summarizer(combined_titles, max_length=130, min_length=30, do_sample=False)
-#     return summary[0]['summary_text']
-
-def summarize_text(titles):
-    # Filter out empty titles
-    titles = [title for title in titles if title.strip()]
-
-    if len(titles) < 2:  # Less than 2 titles may not be sufficient for a summary
-        return "Not enough titles to summarize."
-
-    # Join titles into a coherent structure
-    combined_titles = '. '.join(titles)  # Separate sentences with periods for increased coherence
-    print("Combined Titles:", combined_titles)  # Debugging print
-
-    if len(combined_titles) < 10:  # Check if the combined titles are too short
-        return "Not enough content to summarize."
-
+def summarize_text(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-
-    # Summary with specified constraints
-    try:
-        summary = summarizer(combined_titles, max_length=50, min_length=5, do_sample=False)
-        if summary:  # Check if summary is non-empty
-            return summary[0]['summary_text']
-        else:
-            return "Summarization failed; no output returned."
-    except Exception as e:
-        return f"An error occurred during summarization: {str(e)}"
-
+    summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
+    return summary[0]['summary_text']
 
 # Streamlit Interface
 def main():
@@ -168,10 +134,13 @@ def main():
                     st.write(f"**Date:** {item['date']}")
                     st.write(f"**Title:** {summary} [Read More]({item['link']})")
 
-
-                # # Example of using the titles collected
+                # Generate and display a summary of collected headlines
                 if headlines:
-                    combined_summary = summarize_text([item['title'] for item in news_items])  # Using item titles directly
+                    combined_headlines = ' '.join(headlines)
+                    chunks = chunk_text(combined_headlines)  # Chunk the text
+                    summaries = [summarize_text(chunk) for chunk in chunks]  # Summarize each chunk
+                    combined_summary = ' '.join(summaries)  # Combine the summaries
+
                     st.subheader("Summary:")
                     st.write(combined_summary)
 
